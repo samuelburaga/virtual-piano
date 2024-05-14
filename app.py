@@ -2,8 +2,10 @@ import cv2 as cv
 import mediapipe as mp
 import math
 
+
 from constants.constants import *
-from utils.piano_utils import *
+from utils.piano.ui_utils import *
+from utils.piano.sound_utils import start_piano
 from screeninfo import get_monitors
 
 
@@ -20,6 +22,7 @@ def get_monitor_information():
 
 
 def start(user_webcams_count):
+    start_piano()
     monitor_information = get_monitor_information()
 
     webcam_capture = cv.VideoCapture(0)
@@ -77,9 +80,11 @@ def start(user_webcams_count):
 
                     if distance < PRESS_THRESHOLD:
                         highlight_pressed_key(frame, tip_point)
+                    else:
+                        set_keys_status_to_not_played()
                     break
 
-        # video_recording.write(frame)
+        video_recording.write(frame)
         cv.imshow("Virtual piano", frame)
         cv.moveWindow(
             "Virtual piano", webcam_capture_position_X, webcam_capture_position_Y
@@ -87,4 +92,4 @@ def start(user_webcams_count):
         if cv.waitKey(1) & 0xFF == ord("q"):
             break
 
-    # video_recording.release()
+    video_recording.release()

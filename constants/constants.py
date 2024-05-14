@@ -10,5 +10,10 @@ PRIMARY_COLOR = (64, 54, 251)
 PRESSED_KEY_COLOR = PRIMARY_COLOR
 
 
+class KeyTypeEnum(Enum):
+    WHITE_KEY = "WHITE_KEY"
+    BLACK_KEY = "BLACK_KEY"
+
+
 class RabbitMQQueues(Enum):
     VIRTUAL_PIANO = "VIRTUAL_PIANO"
