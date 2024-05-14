@@ -1,7 +1,6 @@
 from utils.rabbit_mq_utils import RabbitMQConnection
 from constants.constants import RabbitMQQueues
-from utils.webcam_utils import detect_number_of_webcams
-from app import start
+from virtual_piano.main import main
 
 
 def receive(configuration):
@@ -11,8 +10,7 @@ def receive(configuration):
     def message_received_callback(ch, method, properties, message_body):
         print(f"A message has been received! Message: {message_body}")
         if message_body == b"start":
-            user_webcams_count = detect_number_of_webcams()
-            start(user_webcams_count)
+            main()
 
     rabbit_mq_connection.channel.basic_consume(
         queue=RabbitMQQueues.VIRTUAL_PIANO.value,

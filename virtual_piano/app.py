@@ -33,7 +33,6 @@ def start(user_webcams_count):
     webcam_dimensions = (frame_width, frame_height)
 
     frame_rate = int(webcam_capture.get(cv.CAP_PROP_FPS))
-    print(frame_rate)
     webcam_capture_position_X = (monitor_information.width - frame_width) // 2
     webcam_capture_position_Y = (monitor_information.height - frame_width) // 2
 
@@ -92,7 +91,9 @@ def start(user_webcams_count):
             "Virtual piano", webcam_capture_position_X, webcam_capture_position_Y
         )
         if cv.waitKey(1) == ord("q"):
+            background_thread.join()
             break
 
-    webcam_capture.release()
     release_video_recording()
+    webcam_capture.release()
+    cv.destroyAllWindows()

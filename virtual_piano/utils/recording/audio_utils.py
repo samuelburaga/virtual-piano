@@ -1,5 +1,7 @@
 import soundcard as sc
 import soundfile as sf
+import keyboard
+
 from constants.constants import AUDIO_RECORDING_SAMPLE_RATE
 
 
@@ -18,5 +20,7 @@ def start_audio_recording():
                 while True:
                     data = mic.record(numframes=AUDIO_RECORDING_SAMPLE_RATE)
                     file.write(data[:, 0])
+                    if keyboard.is_pressed("q"):  # Check if 'q' is pressed
+                        break
         except KeyboardInterrupt:
             print("\nRecording stopped manually.")
