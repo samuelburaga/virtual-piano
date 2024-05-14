@@ -9,7 +9,6 @@ from utils.piano.ui_utils import *
 from utils.piano.sound_utils import start_piano
 from utils.recording.video_utils import *
 from utils.recording.audio_utils import *
-from utils.recording.audio_utils import recording
 from screeninfo import get_monitors
 
 
