@@ -1,11 +1,13 @@
 import cv2 as cv
 import mediapipe as mp
 import math
-
+import threading
 
 from constants.constants import *
 from utils.piano.ui_utils import *
 from utils.piano.sound_utils import start_piano
+from utils.recording.video_utils import *
+from utils.recording.audio_utils import *
 from screeninfo import get_monitors
 
 
@@ -31,14 +33,13 @@ def start(user_webcams_count):
     webcam_dimensions = (frame_width, frame_height)
 
     frame_rate = int(webcam_capture.get(cv.CAP_PROP_FPS))
-
+    print(frame_rate)
     webcam_capture_position_X = (monitor_information.width - frame_width) // 2
     webcam_capture_position_Y = (monitor_information.height - frame_width) // 2
 
-    fourcc_code = cv.VideoWriter.fourcc(*"DIVX")
-    video_recording = cv.VideoWriter(
-        "video-recording.avi", fourcc_code, frame_rate, webcam_dimensions
-    )
+    start_video_recording(frame_rate, webcam_dimensions)
+    background_thread = threading.Thread(target=start_audio_recording)
+    background_thread.start()
 
     while True:
         data, frame = webcam_capture.read()
@@ -84,12 +85,14 @@ def start(user_webcams_count):
                         set_keys_status_to_not_played()
                     break
 
-        video_recording.write(frame)
+        write_frame(frame)
+
         cv.imshow("Virtual piano", frame)
         cv.moveWindow(
             "Virtual piano", webcam_capture_position_X, webcam_capture_position_Y
         )
-        if cv.waitKey(1) & 0xFF == ord("q"):
+        if cv.waitKey(1) == ord("q"):
             break
 
-    video_recording.release()
+    webcam_capture.release()
+    release_video_recording()

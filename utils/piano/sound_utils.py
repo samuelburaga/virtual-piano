@@ -1,5 +1,7 @@
 import tinysoundfont
 import time
+import pyaudio
+import numpy
 
 from constants.constants import KeyTypeEnum
 
