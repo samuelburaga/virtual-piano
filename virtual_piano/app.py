@@ -2,12 +2,14 @@ import cv2 as cv
 import mediapipe as mp
 import math
 import threading
+import sys
 
 from constants.constants import *
 from utils.piano.ui_utils import *
 from utils.piano.sound_utils import start_piano
 from utils.recording.video_utils import *
 from utils.recording.audio_utils import *
+from utils.recording.audio_utils import recording
 from screeninfo import get_monitors
 
 
@@ -38,6 +40,7 @@ def start(user_webcams_count):
 
     start_video_recording(frame_rate, webcam_dimensions)
     background_thread = threading.Thread(target=start_audio_recording)
+    background_thread.daemon = True
     background_thread.start()
 
     while True:
@@ -90,10 +93,13 @@ def start(user_webcams_count):
         cv.moveWindow(
             "Virtual piano", webcam_capture_position_X, webcam_capture_position_Y
         )
-        if cv.waitKey(1) == ord("q"):
-            background_thread.join()
+
+        key_pressed = cv.waitKey(1) & 0xFF
+        if key_pressed == ord("q"):
             break
 
     release_video_recording()
     webcam_capture.release()
     cv.destroyAllWindows()
+    time.sleep(2)
+    sys.exit()
