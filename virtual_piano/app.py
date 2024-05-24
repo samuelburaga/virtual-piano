@@ -4,13 +4,30 @@ import math
 import threading
 import sys
 
-from constants.constants import *
+from enum import Enum
+
+MAXIMUM_NUMBER_OF_WEBCAMS_ASSUMED = 10
+PRESS_THRESHOLD = 40
+PIANO_WHITE_KEY = {"WIDTH": 40, "HEIGHT": 200}
+PIANO_BLACK_KEY = {"WIDTH": 20, "HEIGHT": 120}
+PIANO_OFFSET = {"X": 100, "Y": 100}
+NUMBER_OF_OCTAVES_TO_BE_DRAWN = 2
+PRIMARY_COLOR = (64, 54, 251)
+PRESSED_KEY_COLOR = PRIMARY_COLOR
+
+
+class KeyTypeEnum(Enum):
+    WHITE_KEY = "WHITE_KEY"
+    BLACK_KEY = "BLACK_KEY"
+
+
+# from constants import *
 from utils.piano.ui_utils import *
 from utils.piano.sound_utils import start_piano
 from utils.recording.video_utils import *
 from utils.recording.audio_utils import *
 from screeninfo import get_monitors
-
+from virtual_piano.user_interface import *
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -27,6 +44,10 @@ def get_monitor_information():
 def start(user_webcams_count):
     start_piano()
     monitor_information = get_monitor_information()
+
+    app = QApplication(sys.argv)
+    window = WebcamWidget()
+    window.initialize_webcam(cv.VideoCapture(0))
 
     webcam_capture = cv.VideoCapture(0)
     frame_width = int(webcam_capture.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -50,6 +71,8 @@ def start(user_webcams_count):
 
         for octaveCounter in range(NUMBER_OF_OCTAVES_TO_BE_DRAWN):
             draw_octave(frame, octaveCounter + 1)
+
+        window.update_stream(frame)
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -102,3 +125,6 @@ def start(user_webcams_count):
     cv.destroyAllWindows()
     time.sleep(2)
     sys.exit()
+
+
+sys.exit(app.exec_())
