@@ -2,7 +2,9 @@ import soundcard as sc
 import soundfile as sf
 import keyboard
 
-AUDIO_RECORDING_SAMPLE_RATE = 48000
+from constants import AUDIO_RECORDING_SAMPLE_RATE, DEFAULT_OUTPUT_PATH
+
+output_path = DEFAULT_OUTPUT_PATH
 
 
 def start_audio_recording():
@@ -12,7 +14,7 @@ def start_audio_recording():
         print("Recording audio...")
         try:
             with sf.SoundFile(
-                "out/audio/audio-recording.wav",
+                output_path,
                 "w",
                 samplerate=AUDIO_RECORDING_SAMPLE_RATE,
                 channels=1,

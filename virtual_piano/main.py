@@ -1,11 +1,10 @@
-from utils.webcam_utils import detect_number_of_webcams
-from app import start
-from virtual_piano.user_interface import *
+from webcam import detect_number_of_webcams
+from user_interface import start_application
 
 
 def main():
     user_webcams_count = detect_number_of_webcams()
-    start(user_webcams_count)
+    start_application(user_webcams_count)
 
 
 main()

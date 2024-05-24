@@ -1,6 +1,6 @@
 import cv2 as cv
 
-from constants.constants import *
+from constants import *
 
 
 def detect_number_of_webcams():
