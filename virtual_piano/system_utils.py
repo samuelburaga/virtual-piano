@@ -1,8 +1,10 @@
 import platform
 import subprocess
+import os
 
 
 def open_folder(path):
+    path = os.path.normpath(path)
     system = platform.system()
 
     if system == "Windows":

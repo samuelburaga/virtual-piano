@@ -1,6 +1,6 @@
 import cv2 as cv
 
-from constants import *
+from constants import MAXIMUM_NUMBER_OF_WEBCAMS_ASSUMED
 
 
 def detect_number_of_webcams():

@@ -49,7 +49,9 @@ def highlight_pressed_key(frame, tip_point_position):
                 )
                 play_note(KeyTypeEnum.WHITE_KEY, i)
                 for j in range(NUMBER_OF_OCTAVES_TO_BE_DRAWN):
-                    draw_black_keys(frame, 50 + 7 * j * PIANO_WHITE_KEY["WIDTH"])
+                    draw_black_keys(
+                        frame, PIANO_POSITION["X"] + 7 * j * PIANO_WHITE_KEY["WIDTH"]
+                    )
 
                 break
 

@@ -2,6 +2,7 @@ import sys
 import cv2 as cv
 import math
 import threading
+from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -21,12 +22,12 @@ from constants import *
 from piano_ui import *
 from piano_sound import start_piano
 from audio_recording import *
-from audio_recording import output_path
+from audio_recording import *
 from video_recording import *
 from opencv_utils import *
 from system_utils import *
 
-is_recording = False
+audio_recording_thread = {}
 
 
 class WebcamStreamInFullScreenModeWindow(QWidget):
@@ -79,13 +80,12 @@ class MainApplicationWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     def start_audio_recording(self):
-        global is_recording
-        if is_recording is False:
-
+        global audio_recording_thread
+        if get_recording_status() is False:
             self.options_widget.path_selector_widget.path_selector_button.setEnabled(
                 False
             )
-
+            change_recording_status()
             audio_recording_thread = threading.Thread(target=start_audio_recording)
             audio_recording_thread.daemon = True
             audio_recording_thread.start()
@@ -95,6 +95,9 @@ class MainApplicationWindow(QMainWindow):
             )
 
         else:
+            change_recording_status()
+
+            audio_recording_thread.join()
             self.options_widget.record_button_widget.record_button.setText(
                 "Start recording"
             )
@@ -103,9 +106,7 @@ class MainApplicationWindow(QMainWindow):
                 True
             )
 
-            open_folder(output_path)
-
-        is_recording = not is_recording
+            open_folder(get_output_path())
 
     def make_webcam_full_screen(self):
         self.webcam_stream_in_full_screen_mode_window = (
@@ -152,11 +153,12 @@ class InstructionsWidget(QWidget):
             Instructions: 
         </p>
         <ol style ="font-size: 15pt">
-            <li> Place your hands in front the webcam and the algorithm will detect them.</li>
-            <li> Bend the tip of your fingers down in order to simulate a key touch. The key will be highlighted and played. </li>
-            <li> Chose a path for the audio recording output </li>
-            <li> Press the "Start recording" button. </li>
-            <li> when you finished, stop the recording. </li>
+            <li>Place your hands in front the webcam and the algorithm will detect them.</li>
+            <li>Bend the tip of your fingers down in order to simulate a key touch.</li>
+            <li>Chose a path for the audio recording output</li>
+            <li>Press the "Start recording" button.</li>
+            <li>When you're done playing, stop recording.</li>
+            <li>The output folder will be opened automatically.</li>
         </ol>
         """
         self.instructions.setText(text_in_HTML_format)
@@ -167,7 +169,7 @@ class InstructionsWidget(QWidget):
         self.instructions.setFont(font)
 
         layout.addWidget(self.instructions)
-        layout.setContentsMargins(100, 40, 0, 0)
+        layout.setContentsMargins(100, 40, 100, 0)
         self.setLayout(layout)
 
 
@@ -268,8 +270,6 @@ class WebcamStreamWidget(QWidget):
                 QImage.Format_RGB888,
             )
             self.stream_label.setPixmap(QPixmap.fromImage(imageFromFrame))
-        else:
-            print("Something went wrong!")
 
 
 class OptionsWidget(QWidget):
@@ -277,14 +277,6 @@ class OptionsWidget(QWidget):
         super().__init__()
 
         layout = QHBoxLayout()
-        # layout.setSpacing(20)
-        # # layout.addStretch(1)
-        # layout.setContentsMargins(
-        #     0,
-        #     20,
-        #     20,
-        #     0,
-        # )
 
         self.path_selector_widget = PathSelectorWidget()
         self.record_button_widget = RecordButtonWidget()
@@ -302,9 +294,10 @@ class RecordButtonWidget(QWidget):
 
         layout = QVBoxLayout()
 
-        self.record_button = QPushButton("Start recording audio")
-        self.record_button.setIcon(QIcon("assets/images/svg/record-svgrepo-com.svg"))
+        self.record_button = QPushButton("Start recording")
+        self.record_button.setIcon(QIcon("assets/images/svg/record.svg"))
         self.record_button.setIconSize(QSize(25, 25))
+        self.record_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         layout.addWidget(self.record_button, alignment=Qt.AlignCenter)
         self.setLayout(layout)
@@ -319,17 +312,16 @@ class FullScreenButtonWidget(QWidget):
 
         layout = QVBoxLayout()
 
-        self.quit_button = QPushButton("Full screen")
-        self.quit_button.setIcon(
-            QIcon("assets/images/svg/full-screen-one-svgrepo-com.svg")
-        )
-        self.quit_button.setIconSize(QSize(25, 25))
+        self.full_screen_button = QPushButton("Full screen")
+        self.full_screen_button.setIcon(QIcon("assets/images/svg/full-screen.svg"))
+        self.full_screen_button.setIconSize(QSize(25, 25))
+        self.full_screen_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        layout.addWidget(self.quit_button, alignment=Qt.AlignCenter)
+        layout.addWidget(self.full_screen_button, alignment=Qt.AlignCenter)
         self.setLayout(layout)
 
     def on_click_callback(self, callback):
-        self.quit_button.clicked.connect(callback)
+        self.full_screen_button.clicked.connect(callback)
 
 
 class QuitButtonWidget(QWidget):
@@ -339,10 +331,9 @@ class QuitButtonWidget(QWidget):
         layout = QVBoxLayout()
 
         self.quit_button = QPushButton("Quit")
-        self.quit_button.setIcon(
-            QIcon("assets/images/svg/arrow-right-from-bracket-svgrepo-com.svg")
-        )
+        self.quit_button.setIcon(QIcon("assets/images/svg/exit.svg"))
         self.quit_button.setIconSize(QSize(25, 25))
+        self.quit_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         layout.addWidget(self.quit_button, alignment=Qt.AlignRight)
         self.setLayout(layout)
@@ -360,13 +351,14 @@ class PathSelectorWidget(QWidget):
         self.path_selector_button = QPushButton(
             "Choose the output path for the audio file", self
         )
-        self.path_selector_button.setIcon(
-            QIcon("assets/images/svg/file-folder-svgrepo-com (3).svg")
-        )
+        self.path_selector_button.setIcon(QIcon("assets/images/svg/browse-folder.svg"))
         self.path_selector_button.clicked.connect(self.handleAudioFilePathSelected)
         self.path_selector_button.setIconSize(QSize(25, 25))
+        self.path_selector_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        text_in_HTML_format = f"""<p>Current output path: {DEFAULT_OUTPUT_PATH}</p>"""
+        text_in_HTML_format = (
+            f"""<p>Current output path: {DEFAULT_OUTPUT_ROOT_PATH}</p>"""
+        )
         self.current_output_path_label = QLabel()
         self.current_output_path_label.setText(text_in_HTML_format)
         self.current_output_path_label.setAlignment(Qt.AlignCenter)
@@ -385,15 +377,21 @@ class PathSelectorWidget(QWidget):
             self, "Choose output path", options=file_dialog_options
         )
         if selected_output_path:
-            text_in_HTML_format = (
-                f"""<p>Current output path: {selected_output_path}</p>"""
+            printed_path = (
+                (selected_output_path[:30] + "...")
+                if len(selected_output_path) > 30
+                else selected_output_path
             )
+            text_in_HTML_format = f"""<p>Current output path: {printed_path}</p>"""
             self.current_output_path_label.setText(text_in_HTML_format)
-            output_path = selected_output_path
+            set_output_path(selected_output_path)
 
 
-def start_application(user_webcams_count):
+def start_application(user_webcams_count=0):
     app = QApplication(sys.argv)
     window = MainApplicationWindow()
     window.showMaximized()
     sys.exit(app.exec_())
+
+
+start_application(0)
