@@ -3,7 +3,7 @@ import mediapipe as mp
 import math
 import threading
 import sys
-import time
+
 
 from constants import *
 from piano_ui import *
@@ -103,3 +103,6 @@ def start(user_webcams_count):
     cv.destroyAllWindows()
     time.sleep(2)
     sys.exit()
+
+
+sys.exit(app.exec_())

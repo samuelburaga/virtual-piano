@@ -1,14 +1,9 @@
 import tinysoundfont
-import time
-import pyaudio
-import numpy
 
-from constants.constants import KeyTypeEnum
+from constants import WHITE_KEYS_SOUNDS, BLACK_KEYS_SOUNDS, KeyTypeEnum
 
 synth = tinysoundfont.Synth()
 
-WHITE_KEYS_SOUNDS = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83]
-BLACK_KEYS_SOUNDS = [61, 63, 66, 68, 70, 73, 75, 78, 80, 82]
 
 already_played_white_key = [False] * len(WHITE_KEYS_SOUNDS)
 already_played_black_key = [False] * len(BLACK_KEYS_SOUNDS)

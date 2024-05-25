@@ -1,6 +1,6 @@
 import cv2 as cv
-from constants.constants import *
-from utils.piano.sound_utils import *
+from constants import *
+from piano_sound import *
 
 are_white_keys_drawn = False
 are_black_keys_drawn = False
@@ -49,7 +49,9 @@ def highlight_pressed_key(frame, tip_point_position):
                 )
                 play_note(KeyTypeEnum.WHITE_KEY, i)
                 for j in range(NUMBER_OF_OCTAVES_TO_BE_DRAWN):
-                    draw_black_keys(frame, 50 + 7 * j * PIANO_WHITE_KEY["WIDTH"])
+                    draw_black_keys(
+                        frame, PIANO_POSITION["X"] + 7 * j * PIANO_WHITE_KEY["WIDTH"]
+                    )
 
                 break
 
@@ -66,7 +68,7 @@ def draw_black_keys(frame, start_X):
                 + index * PIANO_WHITE_KEY["WIDTH"]
                 + PIANO_WHITE_KEY["WIDTH"]
                 - PIANO_BLACK_KEY["WIDTH"] // 2,
-                100,
+                PIANO_POSITION["Y"],
             )
             bottom_right_corner = (
                 start_X
@@ -74,7 +76,7 @@ def draw_black_keys(frame, start_X):
                 + PIANO_WHITE_KEY["WIDTH"]
                 - PIANO_BLACK_KEY["WIDTH"] // 2
                 + PIANO_BLACK_KEY["WIDTH"],
-                100 + PIANO_BLACK_KEY["HEIGHT"],
+                PIANO_POSITION["Y"] + PIANO_BLACK_KEY["HEIGHT"],
             )
             cv.rectangle(
                 frame,
@@ -92,10 +94,10 @@ def draw_black_keys(frame, start_X):
 def draw_white_keys(frame, start_X):
     global are_white_keys_drawn
     for i in range(7):
-        top_left_corner = start_X + i * PIANO_WHITE_KEY["WIDTH"], 100
+        top_left_corner = start_X + i * PIANO_WHITE_KEY["WIDTH"], PIANO_POSITION["Y"]
         bottom_right_corner = (
             start_X + (i + 1) * PIANO_WHITE_KEY["WIDTH"],
-            100 + PIANO_WHITE_KEY["HEIGHT"],
+            PIANO_POSITION["Y"] + PIANO_WHITE_KEY["HEIGHT"],
         )
 
         cv.rectangle(
@@ -115,11 +117,12 @@ def draw_white_keys(frame, start_X):
         )
         if are_white_keys_drawn is False:
             white_keys_positions.append([top_left_corner, bottom_right_corner])
+
     if len(white_keys_positions) / 7 == NUMBER_OF_OCTAVES_TO_BE_DRAWN:
         are_white_keys_drawn = True
 
 
 def draw_octave(frame, octaveCounter):
-    start_X = 50 + 7 * (octaveCounter - 1) * PIANO_WHITE_KEY["WIDTH"]
+    start_X = PIANO_POSITION["X"] + 7 * (octaveCounter - 1) * PIANO_WHITE_KEY["WIDTH"]
     draw_white_keys(frame, start_X)
     draw_black_keys(frame, start_X)
