@@ -1,4 +1,6 @@
 import cv2 as cv
+import math
+
 from constants import *
 from piano_sound import *
 
@@ -8,9 +10,17 @@ white_keys_positions = []
 black_keys_positions = []
 
 
-def highlight_pressed_key(frame, tip_point_position):
-    global already_played_white_key, already_played_black_key
-    global last_white_key_played, last_black_key_played
+def is_key_pressed(finger_top_point, second_point):
+    distance = math.sqrt(
+        (finger_top_point[0] - second_point[0]) ** 2
+        + (finger_top_point[1] - second_point[1]) ** 2
+    )
+    return distance < PRESS_THRESHOLD
+
+
+def play_pressed_key(frame, tip_point_position):
+    global WHITE_KEY_WAS_RELEASED
+    global last_white_key_played
     key_found = False
 
     for i in range(len(black_keys_positions)):
@@ -54,9 +64,8 @@ def highlight_pressed_key(frame, tip_point_position):
                     )
 
                 break
-
-    if key_found is False:
-        set_keys_status_to_not_played()
+            else:
+                WHITE_KEY_WAS_RELEASED[last_white_key_played] = True
 
 
 def draw_black_keys(frame, start_X):
