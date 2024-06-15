@@ -82,7 +82,7 @@ def start(user_webcams_count):
                     )
 
                     if distance < PRESS_THRESHOLD:
-                        highlight_pressed_key(frame, tip_point)
+                        play_pressed_key(frame, tip_point)
                     else:
                         set_keys_status_to_not_played()
                     break

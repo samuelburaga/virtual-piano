@@ -1,6 +1,5 @@
 import sys
 import cv2 as cv
-import math
 import threading
 from datetime import datetime
 
@@ -19,8 +18,10 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon, QFont
 
 
 from constants import *
+from constants import PRESS_THRESHOLD, NUMBER_OF_OCTAVES_TO_BE_DRAWN, PRIMARY_COLOR
 from piano_ui import *
 from piano_sound import start_piano
+import piano_sound
 from audio_recording import *
 from audio_recording import *
 from video_recording import *
@@ -177,7 +178,6 @@ class WebcamStreamWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.is_full_screen = False
-
         self.layout = QVBoxLayout()
 
         self.stream_label = QLabel(self)
@@ -185,7 +185,7 @@ class WebcamStreamWidget(QWidget):
         self.layout.addWidget(self.stream_label, alignment=Qt.AlignCenter)
         self.setLayout(self.layout)
 
-        self.webcam_capture = cv.VideoCapture(0)
+        self.webcam_capture = cv.VideoCapture(1)
         start_piano()
 
         self.frame_width = int(self.webcam_capture.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -201,7 +201,7 @@ class WebcamStreamWidget(QWidget):
         self.monitor_information = get_monitor_information()
         self.webcam_capture_position_X = (
             self.monitor_information.width - self.frame_width
-        ) // 2
+        )
         self.webcam_capture_position_Y = (
             self.monitor_information.height - self.frame_width
         ) // 2
@@ -214,14 +214,45 @@ class WebcamStreamWidget(QWidget):
         data, frame = self.webcam_capture.read()
         if data:
             frame = cv.cvtColor(cv.flip(frame, 1), cv.COLOR_RGB2BGR)
-            results = hands.process(frame)
+            hands_processing_result = hands.process(frame)
             frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
 
             for octaveCounter in range(NUMBER_OF_OCTAVES_TO_BE_DRAWN):
                 draw_octave(frame, octaveCounter + 1)
 
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
+            if hands_processing_result.multi_hand_landmarks:
+                for hand_landmarks in hands_processing_result.multi_hand_landmarks:
+                    all_landmarks = hand_landmarks.landmark
+
+                    for finger_points_pair in [
+                        (4, 3),
+                        (8, 7),
+                        (12, 11),
+                        (16, 15),
+                        (20, 19),
+                    ]:
+                        finger_top_code, second_landmark_code = finger_points_pair
+
+                        finger_top_point = (
+                            int(all_landmarks[finger_top_code].x * frame.shape[1]),
+                            int(all_landmarks[finger_top_code].y * frame.shape[0]),
+                        )
+
+                        second_point = (
+                            int(all_landmarks[second_landmark_code].x * frame.shape[1]),
+                            int(all_landmarks[second_landmark_code].y * frame.shape[0]),
+                        )
+
+                        if is_key_pressed(finger_top_point, second_point):
+                            play_pressed_key(frame, finger_top_point)
+                        else:
+                            piano_sound.WHITE_KEY_WAS_RELEASED[
+                                piano_sound.last_white_key_played
+                            ] = True
+                            piano_sound.BLACK_KEY_WAS_RELEASED[
+                                piano_sound.last_black_key_played
+                            ] = True
+
                     mp_drawing.draw_landmarks(
                         frame,
                         hand_landmarks,
@@ -230,30 +261,6 @@ class WebcamStreamWidget(QWidget):
                             color=PRIMARY_COLOR, thickness=2, circle_radius=2
                         ),
                     )
-
-                    landmarks = hand_landmarks.landmark
-
-                    for finger_info in [(8, 6), (12, 10), (16, 14), (20, 18)]:
-                        tip_id, base_id = finger_info
-                        tip_point = (
-                            int(landmarks[tip_id].x * frame.shape[1]),
-                            int(landmarks[tip_id].y * frame.shape[0]),
-                        )
-                        base_point = (
-                            int(landmarks[base_id].x * frame.shape[1]),
-                            int(landmarks[base_id].y * frame.shape[0]),
-                        )
-
-                        distance = math.sqrt(
-                            (tip_point[0] - base_point[0]) ** 2
-                            + (tip_point[1] - base_point[1]) ** 2
-                        )
-
-                        if distance < PRESS_THRESHOLD:
-                            highlight_pressed_key(frame, tip_point)
-                        else:
-                            set_keys_status_to_not_played()
-                        break
 
             if self.is_full_screen is True:
                 frame = cv.resize(

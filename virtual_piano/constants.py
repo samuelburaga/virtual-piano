@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 
 MAXIMUM_NUMBER_OF_WEBCAMS_ASSUMED = 10
-PRESS_THRESHOLD = 40
+PRESS_THRESHOLD = 15
 PIANO_WHITE_KEY = {"WIDTH": 40, "HEIGHT": 200}
 PIANO_BLACK_KEY = {"WIDTH": 20, "HEIGHT": 120}
 PIANO_POSITION = {"X": 40, "Y": 50}
@@ -13,6 +13,13 @@ AUDIO_RECORDING_SAMPLE_RATE = 48000
 WHITE_KEYS_SOUNDS = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83]
 BLACK_KEYS_SOUNDS = [61, 63, 66, 68, 70, 73, 75, 78, 80, 82]
 DEFAULT_OUTPUT_ROOT_PATH = str(Path.home()).replace("\\", "/")
+FINGERS_POINTS = [
+    (4, 3),
+    (8, 7),
+    (12, 11),
+    (16, 15),
+    (20, 19),
+]
 
 
 class KeyTypeEnum(Enum):
