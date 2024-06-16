@@ -185,7 +185,7 @@ class WebcamStreamWidget(QWidget):
         self.layout.addWidget(self.stream_label, alignment=Qt.AlignCenter)
         self.setLayout(self.layout)
 
-        self.webcam_capture = cv.VideoCapture(1)
+        self.webcam_capture = cv.VideoCapture(0)
         start_piano()
 
         self.frame_width = int(self.webcam_capture.get(cv.CAP_PROP_FRAME_WIDTH))
