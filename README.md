@@ -1,2 +1,6 @@
-# music-platform-tools
-This repository is used for developing tools specific to a music forum, such as a virtual piano.
+# virtual-piano
+This repository is a virtual piano application that allows users to play the piano using their webcam.
+
+# Demo
+
+![Virtual piano](example/virtual-piano.png)
